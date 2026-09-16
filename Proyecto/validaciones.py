@@ -1,23 +1,29 @@
-def solicitar_numero_positivo(mensaje, es_flotante=True):
-    """Solicita un número y valida que sea mayor a cero."""
+def get_positive_number(prompt, is_float=True):
     while True:
         try:
-            entrada = input(mensaje)
-            valor = float(entrada) if es_flotante else int(entrada)
-            if valor <= 0:
-                print(" Error: El valor debe ser mayor a cero.")
+            entry = input(prompt).strip()
+            val = float(entry) if is_float else int(entry)
+            if val <= 0:
+                print(" Error: El valor debe ser un número mayor a cero.")
                 continue
-            return valor
+            return val
         except ValueError:
             print(" Error: Debe ingresar un valor numérico válido.")
 
-def seleccionar_opcion_menu(mensaje, opciones_validas):
-    """Garantiza que la opción seleccionada pertenezca a la lista de opciones permitidas."""
+def select_menu_option(prompt, valid_options):
     while True:
         try:
-            opcion = input(mensaje).strip().upper()
-            if opcion not in opciones_validas:
+            option = input(prompt).strip().upper()
+            if option not in valid_options:
                 raise ValueError("Opción no válida.")
-            return opcion
+            return option
         except ValueError as e:
-            print(f" Error: {e} Elija entre {list(opciones_validas.keys())}.")
+            print(f" Error: {e} Elija entre {list(valid_options.keys())}.")
+
+def get_valid_text(prompt, is_required=True):
+    while True:
+        entry = input(prompt).strip()
+        if is_required and not entry:
+            print(" Error: Este campo es obligatorio y no puede estar vacío.")
+            continue
+        return entry

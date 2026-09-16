@@ -2,51 +2,90 @@ import validaciones
 import calculos
 import interfaz
 
-def ejecutar_cotizador():
-    print("=== SISTEMA GERENCIAL DE COTIZACIONES ===")
+def run_quotation():
+    print("\n--- NUEVA COTIZACIÓN ---")
+    total_price = 0.0
     
     try:
-        # 1. Captura de datos del cliente
-        nombre_cliente = input("Ingrese el nombre del cliente: ").strip()
-        while not nombre_cliente:
-            print(" Error: El nombre no puede estar vacío.")
-            nombre_cliente = input("Ingrese el nombre del cliente: ").strip()
+        client_name = validaciones.get_valid_text("Ingrese el nombre del cliente: ", is_required=True)
             
-        tipos_cliente = {'A': 'VIP/Mayorista (15%)', 'B': 'Frecuente (10%)', 'C': 'Regular (0%)'}
-        print("\nTipos de cliente disponibles:", tipos_cliente)
-        tipo_cliente = validaciones.seleccionar_opcion_menu("Seleccione tipo de cliente (A/B/C): ", tipos_cliente)
+        client_types = {'A': 'VIP/Mayorista (15%)', 'B': 'Frecuente (10%)', 'C': 'Regular (0%)'}
+        print("\nTipos de cliente disponibles:", client_types)
+        client_type = validaciones.select_menu_option("Seleccione tipo de cliente (A/B/C): ", client_types)
 
-        # 2. Captura de datos del producto
-        nombre_producto = input("\nIngrese la descripción del producto: ").strip()
-        while not nombre_producto:
-            print(" Error: El producto no puede estar vacío.")
-            nombre_producto = input("Ingrese la descripción del producto: ").strip()
+        product_list = []
+        subtotals = []
+        add_more = "S"
+        
+        while add_more == "S":
+            product_name = validaciones.get_valid_text("\nIngrese el nombre del producto: ", is_required=True)
+            product_description = validaciones.get_valid_text("Ingrese una breve descripción (opcional, Presione Enter para omitir): ", is_required=False)
+                
+            price = validaciones.get_positive_number("Ingrese precio unitario (C$): ", is_float=True)
+            quantity = validaciones.get_positive_number("Ingrese cantidad de unidades: ", is_float=False)
+
+            item_subtotal = calculos.calculate_subtotal(price, quantity)
             
-        precio = validaciones.solicitar_numero_positivo("Ingrese precio unitario ($): ", es_flotante=True)
-        cantidad = validaciones.solicitar_numero_positivo("Ingrese cantidad de unidades: ", es_flotante=False)
+            if product_description:
+                item_detail = f"{product_name} ({product_description}) x{quantity} - C${item_subtotal:.2f}"
+            else:
+                item_detail = f"{product_name} x{quantity} - C${item_subtotal:.2f}"
+                
+            product_list.append(item_detail)
+            subtotals.append(item_subtotal)
 
-        # 3. Datos de envío
-        zonas_envio = {'1': 'Local ($5.00)', '2': 'Nacional ($10.00)', '3': 'Remota ($20.00)'}
-        print("\nZonas de envío disponibles:", zonas_envio)
-        zona = validaciones.seleccionar_opcion_menu("Seleccione la zona de envío (1/2/3): ", zonas_envio)
+            add_more = validaciones.select_menu_option("¿Desea agregar otro producto? (S/N): ", {'S': 'Sí', 'N': 'No'})
 
-        # 4. Procesamiento mediante funciones del módulo calculos
-        subtotal = calculos.calcular_subtotal(precio, cantidad)
-        tasa_descuento = calculos.obtener_porcentaje_descuento(tipo_cliente)
-        costo_envio = calculos.obtener_costo_envio(zona)
-        monto_descuento, total = calculos.calcular_total_cotizacion(subtotal, tasa_descuento, costo_envio)
+        total_subtotal = calculos.calculate_total_subtotal(subtotals)
 
-        # 5. Salida de resultados
-        interfaz.mostrar_resumen_cotizacion(
-            nombre_cliente, nombre_producto, cantidad, precio,
-            subtotal, monto_descuento, costo_envio, total
+        shipping_zones = {'1': 'Local (C$5.00)', '2': 'Nacional (C$10.00)', '3': 'Remota (C$20.00)'}
+        print("\nZonas de envío disponibles:", shipping_zones)
+        zone = validaciones.select_menu_option("Seleccione la zona de envío (1/2/3): ", shipping_zones)
+
+        discount_rate = calculos.get_discount_rate(client_type)
+        shipping_cost = calculos.get_shipping_cost(zone)
+        discount_amount, total_price = calculos.calculate_final_total(total_subtotal, discount_rate, shipping_cost)
+
+        interfaz.print_quote_summary(
+            client_name, product_list,
+            total_subtotal, discount_amount, shipping_cost, total_price
         )
 
     except Exception as err:
-        print(f"\n Ha ocurrido un error inesperado en el sistema: {err}")
+        print(f"\n Ocurrió un error en el sistema: {err}")
+        total_price = 0.0
 
     finally:
-        print("Proceso de cotización finalizado.\n")
+        print("Proceso de cotización finalizado.")
+
+    return total_price
+
+
+def start_app():
+    total_quotes = 0
+    session_total = 0.0
+
+    while True:
+        print("\n=== SISTEMA DE COTIZACIONES ===")
+        print("1. Nueva Cotización")
+        print("2. Ver Resumen de la Sesión")
+        print("3. Salir")
+        
+        option = validaciones.select_menu_option("Seleccione una opción (1-3): ", {'1': 'Nueva', '2': 'Resumen', '3': 'Salir'})
+        
+        if option == "1":
+            quote_total = run_quotation()
+            if quote_total > 0:
+                total_quotes += 1
+                session_total += quote_total
+        elif option == "2":
+            print("\n--- RESUMEN DE LA SESIÓN ---")
+            print(f" Cotizaciones realizadas: {total_quotes}")
+            print(f" Monto total acumulado: C${session_total:.2f}")
+        elif option == "3":
+            print("\nSaliendo del programa...")
+            break
+
 
 if __name__ == "__main__":
-    ejecutar_cotizador()
+    start_app()
