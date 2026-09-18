@@ -59,8 +59,6 @@ def run_quotation():
         print("Proceso de cotización finalizado.")
 
     return total_price
-
-
 def start_app():
     total_quotes = 0
     session_total = 0.0
@@ -82,10 +80,10 @@ def start_app():
             print("\n--- RESUMEN DE LA SESIÓN ---")
             print(f" Cotizaciones realizadas: {total_quotes}")
             print(f" Monto total acumulado: C${session_total:.2f}")
+
         elif option == "3":
             print("\nSaliendo del programa...")
             break
-
 
 if __name__ == "__main__":
     start_app()
